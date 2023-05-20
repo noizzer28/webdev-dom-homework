@@ -57,6 +57,27 @@
     const addCommentElement = document.getElementById("add-comment-button");
     const removeCommentElement = document.getElementById("delete-comment-button");
 
+        // Попытка создать функцию времени:
+
+        // const date = new Date;
+        // let minutes = date.getMinutes();
+        //   if (minutes < 10) {
+        //     minutes = "0" +  minutes;
+        //   }
+        // let hours = date.getHours();
+        //   if (hours < 10) {
+        //     hours = "0" + hours;
+        //   }
+        // const time = hours + ":" + minutes;
+        // let day = date.getDate();
+        //   if (day < 10) {
+        //     day = "0" + day;
+        //   }
+        // let month = date.getMonth() + 1 ;
+        //   if (month < 10) {
+        //     month = "0" + month;
+        //   }
+
   
    
     let comments = [];
@@ -194,6 +215,7 @@
         }
     });
 
+
     // Отправка комментариев
     addCommentElement.addEventListener("click", () => {
       nameElement.classList.remove("validation");
@@ -239,21 +261,24 @@
                 likes: 0,
                 isActive: false,
             })
-          });
+          }).then((response) => {
+              response.json().then((responseData) => {
+                  comments = responseData.comments
+              });
+              renderComments();
+            });
 
           const fetchPromiseGET = fetch("https://webdev-hw-api.vercel.app/api/v1/viktoria-kolosova/comments", {
             method: "GET",
-          });
-
-          fetchPromiseGET.then((response) => {
-            const JSONPromise = response.json().then((responseData) => {
+          }).then((response) => {
+            response.json().then((responseData) => {
               console.log(responseData);
               comments = responseData.comments.map((comment) => {
                 const date = new Date(comment.date);
                 let minutes = date.getMinutes();
-                if (minutes < 10) {
-                  minutes = "0" +  minutes;
-                }
+                  if (minutes < 10) {
+                    minutes = "0" +  minutes;
+                  }
                 let hours = date.getHours();
                   if (hours < 10) {
                     hours = "0" + hours;
@@ -275,6 +300,7 @@
                   isActive: comment.isLiked,
                 }
             })
+            renderComments();
           })
         })
 
