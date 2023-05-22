@@ -1,291 +1,249 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Проект "Комменты"</title>
-    <meta charset="utf-8" />
-    <link rel="stylesheet" href="styles.css" />
-  </head>
 
-  <body>
-    <div class="container">
-      <ul class="comments" id="comments-area">
-        <!-- Рендерится из JS -->
-      </ul>
-      <div class="add-form" id="inputs">
-        <input
-          type="text"
-          class="add-form-name"
-          placeholder="Введите ваше имя"
-          id="name-input"
-        />
-        <textarea
-          type="textarea"
-          class="add-form-text"
-          placeholder="Введите ваш коментарий"
-          rows="4"
-          id="comment-input"
-        ></textarea>
-        <div class="add-form-row">
-          <button class="add-form-button" id="add-comment-button">Написать</button>
-        </div>
-        <div class="add-form-row">
-          <button class="add-form-button" id="delete-comment-button">Удалить последний комментарий</button>
-        </div>
+<head>
+  <title>Проект "Комменты"</title>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div class="container">
+    <ul class="comments" id="comments-area">
+      <!-- Рендерится из JS -->
+    </ul>
+    <div class="add-form" id="inputs">
+      <input type="text" class="add-form-name" placeholder="Введите ваше имя" id="name-input" />
+      <textarea type="textarea" class="add-form-text" placeholder="Введите ваш коментарий" rows="4"
+        id="comment-input"></textarea>
+      <div class="add-form-row">
+        <button class="add-form-button" id="add-comment-button">
+          Написать
+        </button>
+      </div>
+      <div class="add-form-row">
+        <button class="add-form-button" id="delete-comment-button">
+          Удалить последний комментарий
+        </button>
       </div>
     </div>
-  </body>
-  <style>
-    .validation {
-      box-shadow: 0 0 10px 4px rgba(255, 0, 0, 1);
-    }
-    .replyComment {
-      background-color: #fff;
-      font-size: 14px;
-      color: black;
-      padding: 15px;
-      border-radius: 10px;
-      white-space: pre-line
-    }
-    
-  </style>
+  </div>
+</body>
+<style>
+  .validation {
+    box-shadow: 0 0 10px 4px rgba(255, 0, 0, 1);
+  }
 
-  <script>
-    "use strict";
-    const commentsArea = document.getElementById("comments-area");
-    const nameElement = document.getElementById("name-input");
-    const commentElement = document.getElementById("comment-input");
-    const addCommentElement = document.getElementById("add-comment-button");
-    const removeCommentElement = document.getElementById("delete-comment-button");
+  .replyComment {
+    background-color: #fff;
+    font-size: 14px;
+    color: black;
+    padding: 15px;
+    border-radius: 10px;
+    white-space: pre-line;
+  }
+</style>
 
-  
-   
-    let comments = [];
+<script>
+  "use strict";
+  const commentsArea = document.getElementById("comments-area");
+  const nameElement = document.getElementById("name-input");
+  const commentElement = document.getElementById("comment-input");
+  const addCommentElement = document.getElementById("add-comment-button");
+  const removeCommentElement = document.getElementById("delete-comment-button");
 
-    const commentsFetch = fetch("https://webdev-hw-api.vercel.app/api/v1/viktoria-kolosova/comments", {
-      method: "GET",
-    });
+  function formatDate(inputDate) {
+    const commentDate = new Date(inputDate);
+
+    const options = {
+      year: '2-digit',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    };
+    return commentDate.toLocaleDateString('ru-RU', options);
+  }
+
+  let comments = [];
 
 
-    // Достаем список из API
+  function fetchComments() {
+    const commentsFetch = fetch("https://webdev-hw-api.vercel.app/api/v1/viktoria-kolosova/comments",
+      {
+        method: "GET",
+      });
     commentsFetch.then((response) => {
       const commentsJSON = response.json().then((responseData) => {
         console.log(responseData);
 
         comments = responseData.comments.map((comment) => {
-          const date = new Date(comment.date);
-          let minutes = date.getMinutes();
-          if (minutes < 10) {
-            minutes = "0" +  minutes;
-          }
-          let hours = date.getHours();
-            if (hours < 10) {
-              hours = "0" + hours;
-            }
-          const time = hours + ":" + minutes;
-          let day = date.getDate();
-            if (day < 10) {
-              day = "0" + day;
-            }
-          let month = date.getMonth() + 1 ;
-            if (month < 10) {
-              month = "0" + month;
-            }
           return {
             name: comment.author.name,
-            date: day + "." + month + "." + date.getFullYear().toString().substr(-2) + " " + time,
+            date: formatDate(comment.date),
             text: comment.text,
             likes: comment.likes,
-            isActive: comment.isLiked,
+            isLiked: comment.isLiked,
           }
-        })
+        });
+        renderComments();
+      });
+    });
+  };
+
+
+  fetchComments();
+
+
+  // Обработчик лайков
+  const likeCountButtonListener = () => {
+    const likeButtonElements = document.querySelectorAll('.like-button');
+    for (const likeButtonElement of likeButtonElements) {
+      likeButtonElement.addEventListener('click', () => {
+        event.stopPropagation();
+        let index = likeButtonElement.dataset.index;
+        if (comments[index].isLiked == false) {
+          comments[index].likes++;
+          comments[index].isLiked = true;
+        } else {
+          comments[index].likes--;
+          comments[index].isLiked = false;
+        }
         renderComments();
       })
-    })
+    }
+  }
 
+  likeCountButtonListener();
 
-   // Обработчик лайков
-    const likeCountButtonListener = () => {
-      const likeButtonElements = document.querySelectorAll('.like-button');
-      for (const likeButtonElement of likeButtonElements) {
-        likeButtonElement.addEventListener('click', () => {
-          event.stopPropagation();
-          let index = likeButtonElement.dataset.index;
-          if (comments[index].isActive == false) {
-            comments[index].likes++;
-            comments[index].isActive = true;
-          } else {
-            comments[index].likes--;
-            comments[index].isActive = false;
-          }
-          renderComments();
-        })
-      }
+  // Ответ на комментарий
+  const replyCommentsListener = () => {
+    const replyButtonElements = document.querySelectorAll('.comment');
+    for (const replyButtonElement of replyButtonElements) {
+      replyButtonElement.addEventListener('click', () => {
+        let index = replyButtonElement.dataset.index;
+        commentElement.value = `Quote_start${comments[index].name}: New_line ${comments[index].comment} Quote_end`
+        renderComments();
+      })
     }
 
+  }
+  replyCommentsListener();
+
+
+  // Рендер комментариев в HTML
+  const renderComments = () => {
+    const commentsHtml = comments.map((comment, index) => {
+      return `<li class="comment" data-index="${index}">
+           <div class="comment-header">
+             <div>${comment.name}
+                 </div>
+             <div>${comment.date}</div>
+           </div>
+           <div class="comment-body">
+             <div class="comment-text">
+               ${comment.text
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")}
+             </div>
+           </div>
+           <div class="comment-footer">
+             <div class="likes">
+               <span class="likes-counter">${comment.likes}</span>
+               <button data-index="${index}" id="likes-button" class="like-button ${comment.isLiked ? "-active-like" : ""}"></button>
+             </div>
+           </div>
+         </li>`
+    }).join('');
+    commentsArea.innerHTML = commentsHtml;
     likeCountButtonListener();
-
-    // Ответ на комментарий
-    const replyCommentsListener = () => {
-      const replyButtonElements = document.querySelectorAll('.comment');
-       for (const replyButtonElement of replyButtonElements) {
-        replyButtonElement.addEventListener('click', () => {
-          let index = replyButtonElement.dataset.index;
-          commentElement.value =`Quote_start${comments[index].name}: New_line ${comments[index].comment} Quote_end`
-          renderComments();
-        })
-      } 
-
-    }
     replyCommentsListener();
+  }
+  renderComments();
 
 
-    // Рендер комментариев в HTML
-    const renderComments = () => {
-      const commentsHtml = comments.map((comment, index) => {
-          return `<li class="comment" data-index="${index}">
-          <div class="comment-header">
-            <div>${comment.name}
-                </div>
-            <div>${comment.date}</div>
-          </div>
-          <div class="comment-body">
-            <div class="comment-text">
-              ${comment.text
-                .replaceAll("&", "&amp;")
-                .replaceAll("<", "&lt;")
-                .replaceAll(">", "&gt;")
-                .replaceAll('"', "&quot;")}
-            </div>
-          </div>
-          <div class="comment-footer">
-            <div class="likes">
-              <span class="likes-counter">${comment.likes}</span>
-              <button data-index="${index}" id="likes-button" class="like-button ${comment.isActive ? "-active-like" : ""}"></button>
-            </div>
-          </div>
-        </li>`
-      }).join('');
-      commentsArea.innerHTML = commentsHtml;
-      likeCountButtonListener();
-      replyCommentsListener();
-    }
+  // Удаляет последний комментарий
+  removeCommentElement.addEventListener("click", () => {
+    comments.splice(-1);
     renderComments();
-    
+  })
 
-    // Удаляет последний комментарий
-    removeCommentElement.addEventListener("click", () => {
-      comments.splice(-1);
-      renderComments();
-    })
-
-    // Выключает кнопку при пустых инпутах
-    window.addEventListener('input', () => {
-      if (nameElement.value === "" || commentElement.value === "") {
+  // Выключает кнопку при пустых инпутах
+  window.addEventListener('input', () => {
+    if (nameElement.value === "" || commentElement.value === "") {
       addCommentElement.disabled = true;
     } else {
       addCommentElement.disabled = false;
     }
-    });
+  });
 
-    // Кнопка Enter 
-    window.addEventListener('keyup', () => {
-      if (event.key === 'Enter') {
-          addCommentElement.click();
-        }
-    });
+  // Кнопка Enter
+  window.addEventListener('keyup', () => {
+    if (event.key === 'Enter') {
+      addCommentElement.click();
+    }
+  });
 
-    // Отправка комментариев
-    addCommentElement.addEventListener("click", () => {
-      nameElement.classList.remove("validation");
-      commentElement.classList.remove("validation");
 
-      if (nameElement.value == "" && commentElement.value == "") {
-        nameElement.classList.add("validation");
-        commentElement.classList.add("validation");
-        return;
-      } else if (commentElement.value == "") {
-        commentElement.classList.add("validation");
-        return;
-      } else if (nameElement.value == "") {
-        nameElement.classList.add("validation");
-        return;
-      };
+  // Отправка комментариев
+  addCommentElement.addEventListener("click", () => {
+    nameElement.classList.remove("validation");
+    commentElement.classList.remove("validation");
 
-      const date = new Date;
-        let minutes = date.getMinutes();
-          if (minutes < 10) {
-            minutes = "0" +  minutes;
-          }
-        let hours = date.getHours();
-          if (hours < 10) {
-            hours = "0" + hours;
-          }
-        const time = hours + ":" + minutes;
-        let day = date.getDate();
-          if (day < 10) {
-            day = "0" + day;
-          }
-        let month = date.getMonth() + 1 ;
-          if (month < 10) {
-            month = "0" + month;
-          }
-        
-          const fetchPromise = fetch("https://webdev-hw-api.vercel.app/api/v1/viktoria-kolosova/comments", {
-            method: "POST",
-            body: JSON.stringify({
-                name: nameElement.value,
-                date: day + "." + month + "." + date.getFullYear().toString().substr(-2) + " " + time,
-                text: commentElement.value,
-                likes: 0,
-                isActive: false,
-            })
-          });
+    if (nameElement.value == "" && commentElement.value == "") {
+      nameElement.classList.add("validation");
+      commentElement.classList.add("validation");
+      return;
+    } else if (commentElement.value == "") {
+      commentElement.classList.add("validation");
+      return;
+    } else if (nameElement.value == "") {
+      nameElement.classList.add("validation");
+      return;
+    };
 
-          const fetchPromiseGET = fetch("https://webdev-hw-api.vercel.app/api/v1/viktoria-kolosova/comments", {
-            method: "GET",
-          });
-
-          fetchPromiseGET.then((response) => {
-            const JSONPromise = response.json().then((responseData) => {
-              console.log(responseData);
-              comments = responseData.comments.map((comment) => {
-                const date = new Date(comment.date);
-                let minutes = date.getMinutes();
-                if (minutes < 10) {
-                  minutes = "0" +  minutes;
-                }
-                let hours = date.getHours();
-                  if (hours < 10) {
-                    hours = "0" + hours;
-                  }
-                const time = hours + ":" + minutes;
-                let day = date.getDate();
-                  if (day < 10) {
-                    day = "0" + day;
-                  }
-                let month = date.getMonth() + 1 ;
-                  if (month < 10) {
-                    month = "0" + month;
-                  }
-                return {
-                  name: comment.author.name,
-                  date: day + "." + month + "." + date.getFullYear().toString().substr(-2) + " " + time,
-                  text: comment.text,
-                  likes: comment.likes,
-                  isActive: comment.isLiked,
-                }
-            })
-          })
+    const fetchPromise = fetch(
+      "https://webdev-hw-api.vercel.app/api/v1/viktoria-kolosova/comments",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          name: nameElement.value,
+          text: commentElement.value,
         })
-
-          nameElement.value = "";
-          commentElement.value = "";
-          renderComments();
-          
-        });
-
-
+      }).then(() => {
+        fetchComments();
+        nameElement.value = "";
+        commentElement.value = "";
+      })
+  });
 
 
-  </script>
+
+
+
+
+// let minutes = date.getMinutes();
+// if (minutes < 10) {
+//   minutes = "0" + minutes;
+// }
+// let hours = date.getHours();
+// if (hours < 10) {
+//   hours = "0" + hours;
+// }
+// const time = hours + ":" + minutes;
+// let day = date.getDate();
+// if (day < 10) {
+//   day = "0" + day;
+// }
+// let month = date.getMonth() + 1;
+// if (month < 10) {
+//   month = "0" + month;
+// }
+// day + "." + month + "." + date.getFullYear().toString().substr(-2) + " " + time
+
+
+</script>
+
 </html>
