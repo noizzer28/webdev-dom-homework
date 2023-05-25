@@ -135,7 +135,8 @@
 
         event.stopPropagation();
         let index = likeButtonElement.dataset.index;
-        // comment.isLikeLoading = true;
+        comments[index].isLikeLoading = true;
+        renderComments();
         delay(1000).then(() => {
           if (comments[index].isLiked == false) {
           comments[index].likes++;
@@ -144,6 +145,7 @@
           comments[index].likes--;
           comments[index].isLiked = false;
         }
+        comments[index].isLikeLoading = false;
         renderComments();
         })
 
