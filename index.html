@@ -112,7 +112,10 @@
         });
         loadElement.style.display = "none";
         renderComments();
-      });
+      })
+      .catch (() => {
+        console.error("Failed to load, check your connection")
+      })
   };
   
 
@@ -245,29 +248,56 @@
 
     addCommentElement.disabled = true;
     addCommentElement.textContent = "Данные загружаются..."
-    fetch(
+    const failedServer = "Сервер сломался, попробуй позже"
+    const failedInput = "В поле ввода должно быть минимум три символа"
+    const fetchPost = (() => {
+      fetch(
       "https://webdev-hw-api.vercel.app/api/v1/viktoria-kolosova/comments",
       {
         method: "POST",
         body: JSON.stringify({
           name: nameElement.value,
           text: commentElement.value,
+          forceError: true,
         })
       })
       .then((response) => {
-        return response.json();
+        console.log(response);
+        if (response.status === 201) {
+          return response.json();
+        } else if (response.status === 500) {
+          return Promise.reject(new Error(failedServer));
+        } else {
+          return Promise.reject(new Error(failedInput));
+          console.log(failedInput);
+        }
       })
-      .then(() => {
+      .then((responseJson) => {
+        console.log(responseJson);
         addCommentElement.disabled = false;
         addCommentElement.textContent = "Отправить"
         fetchComments();
         nameElement.value = "";
         commentElement.value = "";
       })
+      .catch((error) => {
+        if (error.message == failedServer) {
+          alert(error);
+          fetchPost();
+        } else if (error.message == failedInput){
+          addCommentElement.disabled = false;
+          addCommentElement.textContent = "Отправить"
+          alert(error);
+        } else {
+          addCommentElement.disabled = false;
+          addCommentElement.textContent = "Попробуй еще раз"
+          alert("Кажется, у вас сломался интернет, попробуйте позже");
+        }
+        console.log(error);
+      })
+    });
+    fetchPost();
   });
-
-
-
 
 
 
