@@ -100,6 +100,7 @@ import fetchComments from "./fetchComments.js";
         isLikeLoading: comment.isLiked,
       }
 }
+
   fetchComments(getFetchComments);
   replyCommentsListener();
   likeCountButtonListener();
