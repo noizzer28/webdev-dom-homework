@@ -23,7 +23,9 @@ import fetchComments from "./fetchComments.js";
   }
 
   export let comments = [];
-
+  export function updateComments(newComment) {
+    comments = newComment;
+  }
 //  function fetchComments() {
 //     return fetch("https://webdev-hw-api.vercel.app/api/v1/viktoria-kolosova/comments",
 //       {
@@ -90,18 +92,9 @@ import fetchComments from "./fetchComments.js";
 
   }
     
-  const getFetchComments = (comment) => {
-    return {
-        name: comment.author.name,
-        date: formatDate(comment.date),
-        text: comment.text,
-        likes: comment.likes,
-        isLiked: comment.isLiked,
-        isLikeLoading: comment.isLiked,
-      }
-}
 
-  fetchComments(getFetchComments);
+
+  fetchComments();
   replyCommentsListener();
   likeCountButtonListener();
   renderComments(commentsArea, getListComments);
@@ -125,7 +118,7 @@ import fetchComments from "./fetchComments.js";
   // Удаляет последний комментарий
   removeCommentElement.addEventListener("click", () => {
     comments.splice(-1);
-    renderComments();
+    renderComments(commentsArea, getListComments);
   })
 
   // Выключает кнопку при пустых инпутах
@@ -185,7 +178,6 @@ import fetchComments from "./fetchComments.js";
           return Promise.reject(new Error(failedServer));
         } else {
           return Promise.reject(new Error(failedInput));
-          console.log(failedInput);
         }
       })
       .then((responseJson) => {

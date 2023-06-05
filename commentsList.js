@@ -1,4 +1,4 @@
-import { formatDate } from "./index.js";
+
 export const getListComments = (comment, index) => {
   return`<li class="comment" data-index="${index}">
   <div class="comment-header">
@@ -9,7 +9,7 @@ export const getListComments = (comment, index) => {
   <div class="comment-body">
     <div class="comment-text">
       ${comment.text
- .replaceAll("&", "&amp;")
+ .replaceAll("&", "&amp;")  
  .replaceAll("<", "&lt;")
  .replaceAll(">", "&gt;")
  .replaceAll('"', "&quot;")}
