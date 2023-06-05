@@ -2,6 +2,7 @@
 import {renderComments} from "./renderComments.js";
 import { getListComments } from "./commentsList.js";
 import fetchComments from "./fetchComments.js";
+import {fetchPost} from "./fetchAndPost.js";
 
   const commentsArea = document.getElementById("comments-area");
   const nameElement = document.getElementById("name-input");
@@ -26,32 +27,6 @@ import fetchComments from "./fetchComments.js";
   export function updateComments(newComment) {
     comments = newComment;
   }
-//  function fetchComments() {
-//     return fetch("https://webdev-hw-api.vercel.app/api/v1/viktoria-kolosova/comments",
-//       {
-//         method: "GET",
-//       })
-//     .then((response) => {
-//       return response.json()
-//     }).then((responseData) => {
-//         console.log(responseData);
-//         comments = responseData.comments.map((comment) => {
-//           return {
-//             name: comment.author.name,
-//             date: formatDate(comment.date),
-//             text: comment.text,
-//             likes: comment.likes,
-//             isLiked: comment.isLiked,
-//             isLikeLoading: comment.isLiked,
-//           }
-//         });
-//         loadElement.style.display = "none";
-//         renderComments(commentsArea, getListComments);
-//       })
-//       .catch (() => {
-//         console.error("Failed to load, check your connection")
-//       })
-//   };
 
   // Обработчик лайков
   export const likeCountButtonListener = () => {
@@ -112,9 +87,6 @@ import fetchComments from "./fetchComments.js";
 
 
 
-
-
-
   // Удаляет последний комментарий
   removeCommentElement.addEventListener("click", () => {
     comments.splice(-1);
@@ -137,7 +109,15 @@ import fetchComments from "./fetchComments.js";
     }
   });
 
+  export  function nameInputHolder() {
+     const nameInput = nameElement.value;
+     return nameInput;
+  }
 
+  export function commentInputHolder() {
+    const commentInput = commentElement.value;
+    return commentInput;
+  }
   // Отправка комментариев
   addCommentElement.addEventListener("click", () => {
     nameElement.classList.remove("validation");
@@ -157,53 +137,6 @@ import fetchComments from "./fetchComments.js";
 
     addCommentElement.disabled = true;
     addCommentElement.textContent = "Данные загружаются..."
-    const failedServer = "Сервер сломался, попробуй позже"
-    const failedInput = "В поле ввода должно быть минимум три символа"
-    const fetchPost = (() => {
-      fetch(
-      "https://webdev-hw-api.vercel.app/api/v1/viktoria-kolosova/comments",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          name: nameElement.value,
-          text: commentElement.value,
-          forceError: true,
-        })
-      })
-      .then((response) => {
-        console.log(response);
-        if (response.status === 201) {
-          return response.json();
-        } else if (response.status === 500) {
-          return Promise.reject(new Error(failedServer));
-        } else {
-          return Promise.reject(new Error(failedInput));
-        }
-      })
-      .then((responseJson) => {
-        console.log(responseJson);
-        addCommentElement.disabled = false;
-        addCommentElement.textContent = "Отправить"
-        fetchComments();
-        nameElement.value = "";
-        commentElement.value = "";
-      })
-      .catch((error) => {
-        if (error.message == failedServer) {
-          alert(error);
-          fetchPost();
-        } else if (error.message == failedInput){
-          addCommentElement.disabled = false;
-          addCommentElement.textContent = "Отправить"
-          alert(error);
-        } else {
-          addCommentElement.disabled = false;
-          addCommentElement.textContent = "Попробуй еще раз"
-          alert("Кажется, у вас сломался интернет, попробуйте позже");
-        }
-        console.log(error);
-      })
-    });
     fetchPost();
   });
 
